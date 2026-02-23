@@ -36,6 +36,73 @@
         scroll-behavior: smooth;
       }
 
+      .cityscape {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .skyline {
+        position: absolute;
+        inset: auto 0 0;
+        height: min(40vh, 360px);
+        background: linear-gradient(180deg, transparent 0%, rgba(7, 20, 39, 0.8) 28%, rgba(5, 16, 32, 0.95) 100%);
+      }
+
+      .tower-layer {
+        position: absolute;
+        inset: auto 0 0;
+        height: min(52vh, 450px);
+        opacity: 0.4;
+        transform: translateY(var(--parallax-offset, 0));
+        transition: transform 120ms linear;
+      }
+
+      .tower-layer::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+            90deg,
+            rgba(123, 173, 255, 0.15) 0 2px,
+            transparent 2px 18px
+          ),
+          linear-gradient(180deg, rgba(103, 243, 211, 0.08), rgba(6, 18, 38, 0.95));
+        clip-path: polygon(
+          0 100%,
+          4% 64%,
+          10% 72%,
+          13% 38%,
+          18% 100%,
+          23% 52%,
+          28% 100%,
+          34% 35%,
+          40% 100%,
+          47% 46%,
+          52% 100%,
+          58% 26%,
+          63% 100%,
+          70% 58%,
+          76% 100%,
+          84% 42%,
+          90% 100%,
+          96% 66%,
+          100% 100%
+        );
+      }
+
+      .tower-layer.back {
+        --speed: 0.12;
+        opacity: 0.25;
+      }
+
+      .tower-layer.front {
+        --speed: 0.28;
+        opacity: 0.42;
+      }
+
       a {
         color: inherit;
         text-decoration: none;
@@ -315,6 +382,94 @@
         background: linear-gradient(140deg, rgba(88, 166, 255, 0.14), rgba(103, 243, 211, 0.14));
       }
 
+      .chatbot {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 60;
+      }
+
+      .chat-toggle {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 0;
+        cursor: pointer;
+        font-size: 1.4rem;
+        color: #021022;
+        background: linear-gradient(145deg, var(--accent), #9ff7e2);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      .chat-panel {
+        width: min(360px, calc(100vw - 1.4rem));
+        margin-bottom: 0.65rem;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(4, 14, 30, 0.95);
+        box-shadow: 0 26px 50px rgba(0, 0, 0, 0.45);
+        display: none;
+      }
+
+      .chat-panel.open {
+        display: block;
+      }
+
+      .chat-header {
+        padding: 0.85rem 1rem;
+        background: rgba(88, 166, 255, 0.2);
+        font-weight: 600;
+      }
+
+      .chat-messages {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 0.9rem;
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .msg {
+        padding: 0.55rem 0.7rem;
+        border-radius: 10px;
+        font-size: 0.92rem;
+      }
+
+      .msg.bot {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .msg.user {
+        background: rgba(103, 243, 211, 0.2);
+        justify-self: end;
+      }
+
+      .chat-controls {
+        display: grid;
+        gap: 0.45rem;
+        padding: 0.9rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+      }
+
+      .chat-controls input,
+      .chat-controls button {
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        padding: 0.56rem 0.65rem;
+        font: inherit;
+      }
+
+      .chat-controls button {
+        background: var(--primary);
+        color: #031126;
+        border: 0;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
       footer {
         padding: 2rem 0 3rem;
         color: var(--muted);
@@ -364,6 +519,12 @@
     </style>
   </head>
   <body>
+    <div class="cityscape" aria-hidden="true">
+      <div class="tower-layer back" data-parallax-speed="0.12"></div>
+      <div class="tower-layer front" data-parallax-speed="0.28"></div>
+      <div class="skyline"></div>
+    </div>
+
     <header>
       <div class="container nav">
         <a class="brand" href="#top">the <span>flow</span></a>
@@ -588,6 +749,20 @@
       <div class="container">© <span id="year"></span> the flow. HVAC automation for high-performance buildings.</div>
     </footer>
 
+    <div class="chatbot">
+      <div class="chat-panel" id="chatPanel" aria-live="polite">
+        <div class="chat-header">the flow assistant · Schedule a call</div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg bot">Hi! I can help schedule a call. Share your name to get started.</div>
+        </div>
+        <form class="chat-controls" id="chatForm">
+          <input id="chatInput" type="text" placeholder="Type your message..." required />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+      <button class="chat-toggle" id="chatToggle" aria-expanded="false" aria-controls="chatPanel">💬</button>
+    </div>
+
     <script>
       const observer = new IntersectionObserver(
         (entries) => {
@@ -603,6 +778,97 @@
 
       document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
       document.getElementById('year').textContent = new Date().getFullYear();
+
+      const parallaxLayers = document.querySelectorAll('[data-parallax-speed]');
+      window.addEventListener('scroll', () => {
+        const offset = window.scrollY;
+        parallaxLayers.forEach((layer) => {
+          const speed = Number(layer.dataset.parallaxSpeed || 0.2);
+          layer.style.setProperty('--parallax-offset', `${offset * speed * -0.25}px`);
+        });
+      });
+
+      const chatPanel = document.getElementById('chatPanel');
+      const chatToggle = document.getElementById('chatToggle');
+      const chatMessages = document.getElementById('chatMessages');
+      const chatForm = document.getElementById('chatForm');
+      const chatInput = document.getElementById('chatInput');
+
+      chatToggle.addEventListener('click', () => {
+        chatPanel.classList.toggle('open');
+        const expanded = chatPanel.classList.contains('open');
+        chatToggle.setAttribute('aria-expanded', String(expanded));
+        if (expanded) chatInput.focus();
+      });
+
+      const state = { step: 0, name: '', email: '', time: '' };
+      const prompts = [
+        'Great, what is your full name?',
+        'Thanks! What is the best email for the invite?',
+        'Perfect. What day/time works best for your call?',
+      ];
+
+      function addMessage(text, type) {
+        const el = document.createElement('div');
+        el.className = `msg ${type}`;
+        el.textContent = text;
+        chatMessages.appendChild(el);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function validEmail(value) {
+        return /^\S+@\S+\.\S+$/.test(value);
+      }
+
+      chatForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const value = chatInput.value.trim();
+        if (!value) return;
+
+        addMessage(value, 'user');
+        chatInput.value = '';
+
+        if (state.step === 0) {
+          state.name = value;
+          state.step = 1;
+          addMessage(`Nice to meet you, ${state.name}. ${prompts[1]}`, 'bot');
+          return;
+        }
+
+        if (state.step === 1) {
+          if (!validEmail(value)) {
+            addMessage('That email looks invalid. Please provide a valid work email.', 'bot');
+            return;
+          }
+          state.email = value;
+          state.step = 2;
+          addMessage(prompts[2], 'bot');
+          return;
+        }
+
+        if (state.step === 2) {
+          state.time = value;
+          state.step = 3;
+          addMessage(
+            `Thanks! Your scheduling request is captured for ${state.time}. We'll confirm at ${state.email} shortly.`,
+            'bot'
+          );
+          addMessage('If you want to schedule another call, type: restart', 'bot');
+          return;
+        }
+
+        if (state.step === 3) {
+          if (value.toLowerCase() === 'restart') {
+            state.step = 0;
+            state.name = '';
+            state.email = '';
+            state.time = '';
+            addMessage(prompts[0], 'bot');
+          } else {
+            addMessage('Type "restart" to begin a new scheduling request.', 'bot');
+          }
+        }
+      });
     </script>
   </body>
 </html>
