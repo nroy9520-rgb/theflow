@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>the flow | HVAC Automation</title>
+    <meta
+      name="description"
+      content="the flow delivers HVAC automation for smarter buildings with AI-assisted optimization, remote monitoring, and rapid deployment."
+    />
+    <style>
+      :root {
+        --bg: #061226;
+        --surface: #0d1f3f;
+        --surface-soft: #102a57;
+        --text: #e8f0ff;
+        --muted: #9eb4df;
+        --primary: #58a6ff;
+        --accent: #67f3d3;
+        --glow: rgba(88, 166, 255, 0.35);
+        --ring: rgba(103, 243, 211, 0.3);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        background: radial-gradient(circle at 10% 10%, #132f5d, transparent 40%),
+          radial-gradient(circle at 80% 20%, #123f56, transparent 35%), var(--bg);
+        color: var(--text);
+        scroll-behavior: smooth;
+      }
+
+      .cityscape {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+        overflow: hidden;
+      }
+
+      .skyline {
+        position: absolute;
+        inset: auto 0 0;
+        height: min(40vh, 360px);
+        background: linear-gradient(180deg, transparent 0%, rgba(7, 20, 39, 0.8) 28%, rgba(5, 16, 32, 0.95) 100%);
+      }
+
+      .tower-layer {
+        position: absolute;
+        inset: auto 0 0;
+        height: min(52vh, 450px);
+        opacity: 0.4;
+        transform: translateY(var(--parallax-offset, 0));
+        transition: transform 120ms linear;
+      }
+
+      .tower-layer::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+            90deg,
+            rgba(123, 173, 255, 0.15) 0 2px,
+            transparent 2px 18px
+          ),
+          linear-gradient(180deg, rgba(103, 243, 211, 0.08), rgba(6, 18, 38, 0.95));
+        clip-path: polygon(
+          0 100%,
+          4% 64%,
+          10% 72%,
+          13% 38%,
+          18% 100%,
+          23% 52%,
+          28% 100%,
+          34% 35%,
+          40% 100%,
+          47% 46%,
+          52% 100%,
+          58% 26%,
+          63% 100%,
+          70% 58%,
+          76% 100%,
+          84% 42%,
+          90% 100%,
+          96% 66%,
+          100% 100%
+        );
+      }
+
+      .tower-layer.back {
+        --speed: 0.12;
+        opacity: 0.25;
+      }
+
+      .tower-layer.front {
+        --speed: 0.28;
+        opacity: 0.42;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: min(1140px, calc(100% - 3rem));
+        margin: 0 auto;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(6px);
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(6, 18, 38, 0.75);
+        backdrop-filter: blur(10px);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 74px;
+      }
+
+      .brand {
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: lowercase;
+      }
+
+      .brand span {
+        color: var(--accent);
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1.4rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .btn {
+        padding: 0.72rem 1.1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        border: 1px solid transparent;
+        transition: 220ms ease;
+      }
+
+      .btn-primary {
+        background: linear-gradient(120deg, var(--primary), #8cc3ff);
+        color: #051123;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px var(--glow);
+      }
+
+      .btn-outline {
+        border-color: rgba(255, 255, 255, 0.2);
+        color: var(--text);
+      }
+
+      .btn-outline:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .hero {
+        padding: 5.5rem 0 4rem;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 2.5rem;
+        align-items: center;
+      }
+
+      h1 {
+        margin: 1.2rem 0 1rem;
+        font-size: clamp(2rem, 4vw, 3.8rem);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1.08rem;
+        max-width: 56ch;
+      }
+
+      .hero-actions {
+        margin-top: 1.8rem;
+        display: flex;
+        gap: 0.85rem;
+        flex-wrap: wrap;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.8rem;
+        margin-top: 1.6rem;
+      }
+
+      .stat {
+        padding: 1rem;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 1.3rem;
+      }
+
+      .dashboard {
+        position: relative;
+        padding: 1.2rem;
+        border-radius: 18px;
+        background: linear-gradient(160deg, rgba(16, 42, 87, 0.75), rgba(6, 18, 38, 0.85));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+      }
+
+      .dashboard::before {
+        content: "";
+        position: absolute;
+        inset: -35% auto auto -20%;
+        width: 180px;
+        aspect-ratio: 1;
+        background: radial-gradient(circle, var(--ring), transparent 70%);
+      }
+
+      .chart {
+        margin-top: 1rem;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+      }
+
+      .chart-bars {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        align-items: end;
+        gap: 0.45rem;
+        height: 110px;
+      }
+
+      .chart-bars span {
+        display: block;
+        border-radius: 8px 8px 3px 3px;
+        background: linear-gradient(180deg, var(--accent), #1888d7);
+        animation: pulse 2.8s ease-in-out infinite;
+      }
+
+      .chart-bars span:nth-child(odd) {
+        animation-delay: 0.35s;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.8;
+          transform: scaleY(0.92);
+        }
+        50% {
+          opacity: 1;
+          transform: scaleY(1);
+        }
+      }
+
+      section {
+        padding: 4.25rem 0;
+      }
+
+      .section-title {
+        max-width: 620px;
+        margin-bottom: 2rem;
+      }
+
+      h2 {
+        margin: 0.4rem 0 0.8rem;
+        font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .card {
+        padding: 1.2rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .card h3 {
+        margin: 0.25rem 0 0.6rem;
+      }
+
+      .how {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .step {
+        position: relative;
+        padding: 1.25rem 1.1rem;
+        border-radius: 14px;
+        background: rgba(16, 42, 87, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .step .num {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        font-weight: 700;
+        color: #031126;
+        background: var(--accent);
+      }
+
+      .logos {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+      }
+
+      .logos span {
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #d5e1ff;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        padding: 0.5rem 0.7rem;
+        border-radius: 999px;
+      }
+
+      .cta {
+        text-align: center;
+        padding: 3rem;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: linear-gradient(140deg, rgba(88, 166, 255, 0.14), rgba(103, 243, 211, 0.14));
+      }
+
+      .chatbot {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 60;
+      }
+
+      .chat-toggle {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 0;
+        cursor: pointer;
+        font-size: 1.4rem;
+        color: #021022;
+        background: linear-gradient(145deg, var(--accent), #9ff7e2);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      .chat-panel {
+        width: min(360px, calc(100vw - 1.4rem));
+        margin-bottom: 0.65rem;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(4, 14, 30, 0.95);
+        box-shadow: 0 26px 50px rgba(0, 0, 0, 0.45);
+        display: none;
+      }
+
+      .chat-panel.open {
+        display: block;
+      }
+
+      .chat-header {
+        padding: 0.85rem 1rem;
+        background: rgba(88, 166, 255, 0.2);
+        font-weight: 600;
+      }
+
+      .chat-messages {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 0.9rem;
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .msg {
+        padding: 0.55rem 0.7rem;
+        border-radius: 10px;
+        font-size: 0.92rem;
+      }
+
+      .msg.bot {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .msg.user {
+        background: rgba(103, 243, 211, 0.2);
+        justify-self: end;
+      }
+
+      .chat-controls {
+        display: grid;
+        gap: 0.45rem;
+        padding: 0.9rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+      }
+
+      .chat-controls input,
+      .chat-controls button {
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        padding: 0.56rem 0.65rem;
+        font: inherit;
+      }
+
+      .chat-controls button {
+        background: var(--primary);
+        color: #031126;
+        border: 0;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      footer {
+        padding: 2rem 0 3rem;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+        transition: 550ms ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .grid,
+        .how {
+          grid-template-columns: 1fr;
+        }
+
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .nav-links a:not(.btn) {
+          display: none;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          width: calc(100% - 1.4rem);
+        }
+
+        .hero {
+          padding-top: 4rem;
+        }
+
+        .stats {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cityscape" aria-hidden="true">
+      <div class="tower-layer back" data-parallax-speed="0.12"></div>
+      <div class="tower-layer front" data-parallax-speed="0.28"></div>
+      <div class="skyline"></div>
+    </div>
+
+    <header>
+      <div class="container nav">
+        <a class="brand" href="#top">the <span>flow</span></a>
+        <nav class="nav-links">
+          <a href="#solutions">Solutions</a>
+          <a href="#how-it-works">How it Works</a>
+          <a href="#benefits">Benefits</a>
+          <a href="#contact" class="btn btn-primary">Book a Demo</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="reveal">
+            <span class="pill">HVAC Automation for Smart Buildings</span>
+            <h1>
+              Smarter climate control starts with <span style="color: var(--accent)">the flow</span>
+            </h1>
+            <p>
+              We help facilities automate, monitor, and optimize HVAC operations with real-time insights,
+              AI-driven scheduling, and predictive maintenance. Lower energy costs, improve occupant
+              comfort, and scale operations across every site.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#contact">Get Started</a>
+              <a class="btn btn-outline" href="#how-it-works">See How It Works</a>
+            </div>
+            <div class="stats">
+              <div class="stat">
+                <strong>30%</strong>
+                Average HVAC energy reduction
+              </div>
+              <div class="stat">
+                <strong>24/7</strong>
+                Continuous diagnostics and alerts
+              </div>
+              <div class="stat">
+                <strong>2-4 Weeks</strong>
+                Typical onboarding timeline
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard reveal">
+            <div class="pill">Live Building Performance</div>
+            <div class="chart">
+              <div style="display: flex; justify-content: space-between; color: var(--muted)">
+                <small>Energy Profile (kWh)</small><small>Last 7 Days</small>
+              </div>
+              <div class="chart-bars" aria-hidden="true">
+                <span style="height: 64%"></span>
+                <span style="height: 82%"></span>
+                <span style="height: 57%"></span>
+                <span style="height: 88%"></span>
+                <span style="height: 49%"></span>
+                <span style="height: 71%"></span>
+                <span style="height: 55%"></span>
+              </div>
+            </div>
+            <div class="card" style="margin-top: 1rem">
+              <h3 style="margin-top: 0">Automation Highlights</h3>
+              <p class="muted" style="margin: 0">
+                Demand-based ventilation active, occupancy-based setpoint scheduling enabled, and
+                anomaly detection reduced emergency calls by 21% this month.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="solutions">
+        <div class="container">
+          <div class="section-title reveal">
+            <span class="pill">Platform Capabilities</span>
+            <h2>Everything your HVAC team needs in one intelligent control layer</h2>
+            <p class="muted">
+              the flow connects to existing BMS, IoT sensors, and utility data to automate control
+              strategies without replacing your core infrastructure.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="card reveal">
+              <h3>Automated Setpoint Management</h3>
+              <p class="muted">
+                Dynamically adjust heating/cooling setpoints based on occupancy, weather, and peak energy
+                windows.
+              </p>
+            </article>
+            <article class="card reveal">
+              <h3>Predictive Maintenance</h3>
+              <p class="muted">
+                Catch equipment drift, short cycling, and abnormal run-time patterns before failure events.
+              </p>
+            </article>
+            <article class="card reveal">
+              <h3>Portfolio-Level Visibility</h3>
+              <p class="muted">
+                Central dashboards for operators to benchmark buildings, identify waste, and standardize
+                performance.
+              </p>
+            </article>
+            <article class="card reveal">
+              <h3>Demand Response Ready</h3>
+              <p class="muted">
+                Automate load reduction strategies and align with utility programs to capture incentives.
+              </p>
+            </article>
+            <article class="card reveal">
+              <h3>Remote Commissioning</h3>
+              <p class="muted">
+                Validate control sequences and optimize plant behavior remotely with guided workflows.
+              </p>
+            </article>
+            <article class="card reveal">
+              <h3>Operational Alerts</h3>
+              <p class="muted">
+                Real-time notifications for critical HVAC anomalies sent to technicians and facility leads.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="how-it-works">
+        <div class="container">
+          <div class="section-title reveal">
+            <span class="pill">How it Works</span>
+            <h2>From onboarding to optimization in four clear steps</h2>
+            <p class="muted">
+              A practical deployment model designed for facility teams, integrators, and multi-site owners.
+            </p>
+          </div>
+          <div class="how">
+            <article class="step reveal">
+              <span class="num">1</span>
+              <h3>Site Assessment</h3>
+              <p class="muted">
+                We review building equipment, BAS/BMS topology, and current performance to define the right
+                automation strategy.
+              </p>
+            </article>
+            <article class="step reveal">
+              <span class="num">2</span>
+              <h3>Secure Integration</h3>
+              <p class="muted">
+                Connect existing controllers, meters, and sensors using secure gateways with minimal
+                operational disruption.
+              </p>
+            </article>
+            <article class="step reveal">
+              <span class="num">3</span>
+              <h3>Automation Activation</h3>
+              <p class="muted">
+                Enable optimization rules for scheduling, ventilation, and temperature reset logic based on
+                real conditions.
+              </p>
+            </article>
+            <article class="step reveal">
+              <span class="num">4</span>
+              <h3>Continuous Optimization</h3>
+              <p class="muted">
+                Use ongoing analytics, alerts, and quarterly reviews to keep improving comfort, uptime, and
+                savings.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="benefits">
+        <div class="container">
+          <div class="section-title reveal">
+            <span class="pill">Why Teams Choose the flow</span>
+            <h2>Measurable outcomes for operations, sustainability, and tenant comfort</h2>
+            <p class="muted">
+              Built for commercial offices, retail, healthcare, hospitality, and logistics facilities.
+            </p>
+          </div>
+          <div class="grid">
+            <article class="card reveal">
+              <h3>Lower Utility Spend</h3>
+              <p class="muted">Reduce unnecessary HVAC runtime and improve system efficiency year-round.</p>
+            </article>
+            <article class="card reveal">
+              <h3>Comfort Improvements</h3>
+              <p class="muted">Maintain stable indoor temperatures with fewer hot/cold complaint tickets.</p>
+            </article>
+            <article class="card reveal">
+              <h3>Compliance & ESG</h3>
+              <p class="muted">Track energy intensity and carbon impact for reporting and compliance programs.</p>
+            </article>
+          </div>
+          <div class="logos reveal">
+            <span>Commercial Real Estate</span>
+            <span>Healthcare</span>
+            <span>Retail Chains</span>
+            <span>Campuses</span>
+            <span>Hospitality</span>
+            <span>Logistics</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact">
+        <div class="container">
+          <div class="cta reveal">
+            <span class="pill">Ready to modernize your HVAC operations?</span>
+            <h2>Book a strategy session with the flow</h2>
+            <p class="muted" style="max-width: 70ch; margin: 0 auto 1.2rem">
+              We will map your current building systems, identify immediate optimization opportunities, and
+              share a rollout plan tailored to your sites.
+            </p>
+            <a class="btn btn-primary" href="mailto:hello@theflow.com">hello@theflow.com</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">© <span id="year"></span> the flow. HVAC automation for high-performance buildings.</div>
+    </footer>
+
+    <div class="chatbot">
+      <div class="chat-panel" id="chatPanel" aria-live="polite">
+        <div class="chat-header">the flow assistant · Schedule a call</div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg bot">Hi! I can help schedule a call. Share your name to get started.</div>
+        </div>
+        <form class="chat-controls" id="chatForm">
+          <input id="chatInput" type="text" placeholder="Type your message..." required />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+      <button class="chat-toggle" id="chatToggle" aria-expanded="false" aria-controls="chatPanel">💬</button>
+    </div>
+
+    <script>
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.15 }
+      );
+
+      document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      const parallaxLayers = document.querySelectorAll('[data-parallax-speed]');
+      window.addEventListener('scroll', () => {
+        const offset = window.scrollY;
+        parallaxLayers.forEach((layer) => {
+          const speed = Number(layer.dataset.parallaxSpeed || 0.2);
+          layer.style.setProperty('--parallax-offset', `${offset * speed * -0.25}px`);
+        });
+      });
+
+      const chatPanel = document.getElementById('chatPanel');
+      const chatToggle = document.getElementById('chatToggle');
+      const chatMessages = document.getElementById('chatMessages');
+      const chatForm = document.getElementById('chatForm');
+      const chatInput = document.getElementById('chatInput');
+
+      chatToggle.addEventListener('click', () => {
+        chatPanel.classList.toggle('open');
+        const expanded = chatPanel.classList.contains('open');
+        chatToggle.setAttribute('aria-expanded', String(expanded));
+        if (expanded) chatInput.focus();
+      });
+
+      const state = { step: 0, name: '', email: '', time: '' };
+      const prompts = [
+        'Great, what is your full name?',
+        'Thanks! What is the best email for the invite?',
+        'Perfect. What day/time works best for your call?',
+      ];
+
+      function addMessage(text, type) {
+        const el = document.createElement('div');
+        el.className = `msg ${type}`;
+        el.textContent = text;
+        chatMessages.appendChild(el);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      function validEmail(value) {
+        return /^\S+@\S+\.\S+$/.test(value);
+      }
+
+      chatForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const value = chatInput.value.trim();
+        if (!value) return;
+
+        addMessage(value, 'user');
+        chatInput.value = '';
+
+        if (state.step === 0) {
+          state.name = value;
+          state.step = 1;
+          addMessage(`Nice to meet you, ${state.name}. ${prompts[1]}`, 'bot');
+          return;
+        }
+
+        if (state.step === 1) {
+          if (!validEmail(value)) {
+            addMessage('That email looks invalid. Please provide a valid work email.', 'bot');
+            return;
+          }
+          state.email = value;
+          state.step = 2;
+          addMessage(prompts[2], 'bot');
+          return;
+        }
+
+        if (state.step === 2) {
+          state.time = value;
+          state.step = 3;
+          addMessage(
+            `Thanks! Your scheduling request is captured for ${state.time}. We'll confirm at ${state.email} shortly.`,
+            'bot'
+          );
+          addMessage('If you want to schedule another call, type: restart', 'bot');
+          return;
+        }
+
+        if (state.step === 3) {
+          if (value.toLowerCase() === 'restart') {
+            state.step = 0;
+            state.name = '';
+            state.email = '';
+            state.time = '';
+            addMessage(prompts[0], 'bot');
+          } else {
+            addMessage('Type "restart" to begin a new scheduling request.', 'bot');
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
